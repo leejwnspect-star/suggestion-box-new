@@ -24,7 +24,7 @@ public class SuggestionBoxApplication {
 
     private final List<Suggestion> suggestions = new ArrayList<>();
     
-    // 🔒 관리자 비밀번호 설정 (원하는 비밀번호로 수정하세요!)
+    // 🔒 관리자 비밀번호 설정
     private final String ADMIN_PASSWORD = "1234";
 
     public static void main(String[] args) {
@@ -70,7 +70,7 @@ public class SuggestionBoxApplication {
                 "</body></html>";
     }
 
-    // 3. 건의사항 목록 조회 (비밀번호 확인)
+    // 3. 건의사항 목록 조회 (표 형식 적용)
     @PostMapping(value = "/list", produces = "text/html;charset=UTF-8")
     public String listSuggestions(@RequestParam("password") String password) {
         if (!ADMIN_PASSWORD.equals(password)) {
@@ -81,24 +81,40 @@ public class SuggestionBoxApplication {
         }
 
         StringBuilder html = new StringBuilder();
-        html.append("<html><body style='font-family: Arial; margin: 40px; max-width: 700px;'>");
+        html.append("<html><head><title>4반 건의 목록</title></head>");
+        html.append("<body style='font-family: Arial, sans-serif; margin: 40px; max-width: 800px;'>");
         html.append("<h2>📋 4반 건의사항 접수 목록 (총 ").append(suggestions.size()).append("건)</h2>");
         
         if (suggestions.isEmpty()) {
             html.append("<p>아직 등록된 건의사항이 없습니다.</p>");
         } else {
-            html.append("<ul style='list-style-type: none; padding: 0;'>");
+            // 📊 표(Table) 시작
+            html.append("<table style='width: 100%; border-collapse: collapse; margin-top: 20px; text-align: left;'>");
+            html.append("  <thead>");
+            html.append("    <tr style='background-color: #007BFF; color: white;'>");
+            html.append("      <th style='padding: 10px; border: 1px solid #ddd; width: 60px; text-align: center;'>번호</th>");
+            html.append("      <th style='padding: 10px; border: 1px solid #ddd; width: 160px;'>학번 / 이름</th>");
+            html.append("      <th style='padding: 10px; border: 1px solid #ddd;'>건의 내용</th>");
+            html.append("    </tr>");
+            html.append("  </thead>");
+            html.append("  <tbody>");
+
             for (int i = 0; i < suggestions.size(); i++) {
                 Suggestion s = suggestions.get(i);
-                html.append("<li style='background: #f9f9f9; border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 6px;'>")
-                    .append("<b>#").append(i + 1).append(" [").append(s.studentInfo).append("]</b><br>")
-                    .append("<p style='margin-top: 5px; white-space: pre-wrap;'>").append(s.content).append("</p>")
-                    .append("</li>");
+                String bgColor = (i % 2 == 0) ? "#ffffff" : "#f9f9f9"; // 행마다 배경색 번갈아가며 적용
+                
+                html.append("    <tr style='background-color: ").append(bgColor).append(";'>");
+                html.append("      <td style='padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;'>").append(i + 1).append("</td>");
+                html.append("      <td style='padding: 10px; border: 1px solid #ddd; font-weight: bold;'>").append(s.studentInfo).append("</td>");
+                html.append("      <td style='padding: 10px; border: 1px solid #ddd; white-space: pre-wrap;'>").append(s.content).append("</td>");
+                html.append("    </tr>");
             }
-            html.append("</ul>");
+
+            html.append("  </tbody>");
+            html.append("</table>");
         }
         
-        html.append("<br><a href='/'>홈으로 돌아가기</a>");
+        html.append("<br><br><a href='/' style='text-decoration: none; color: #007BFF; font-weight: bold;'>⬅ 홈으로 돌아가기</a>");
         html.append("</body></html>");
         return html.toString();
     }
