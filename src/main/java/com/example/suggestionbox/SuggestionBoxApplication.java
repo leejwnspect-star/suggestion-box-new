@@ -25,7 +25,7 @@ public class SuggestionBoxApplication {
     private final List<Suggestion> suggestions = new ArrayList<>();
     
     // 🔒 관리자 비밀번호 설정 (원하는 비밀번호로 자유롭게 변경 가능!)
-private final String ADMIN_PASSWORD = "원하는비밀번호입력";
+private final String ADMIN_PASSWORD = "inputyourpassword";
 
     public static void main(String[] args) {
         SpringApplication.run(SuggestionBoxApplication.class, args);
