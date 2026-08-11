@@ -13,7 +13,7 @@ public class SuggestionBoxApplication {
     private final SuggestionRepository repository;
     
     // 🔒 관리자 비밀번호
-    private final String ADMIN_PASSWORD = "1234";
+    private final String ADMIN_PASSWORD = "inputyourpassword";
 
     public SuggestionBoxApplication(SuggestionRepository repository) {
         this.repository = repository;
