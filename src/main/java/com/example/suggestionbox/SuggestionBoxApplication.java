@@ -1,50 +1,14 @@
 package com.example.suggestionbox;
 
-import jakarta.persistence.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @SpringBootApplication
-@EnableJpaRepositories(basePackages = "com.example.suggestionbox")
-@EntityScan(basePackages = "com.example.suggestionbox")
 @RestController
 public class SuggestionBoxApplication {
-
-    // 1. Database Entity (DB 테이블 구조)
-    @Entity
-    @Table(name = "suggestions")
-    public static class Suggestion {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
-
-        private String studentInfo;
-
-        @Column(columnDefinition = "TEXT")
-        private String content;
-
-        public Suggestion() {}
-
-        public Suggestion(String studentInfo, String content) {
-            this.studentInfo = studentInfo;
-            this.content = content;
-        }
-
-        public Long getId() { return id; }
-        public String getStudentInfo() { return studentInfo; }
-        public String getContent() { return content; }
-    }
-
-    // 2. JPA Repository Interface
-    @Repository
-    public interface SuggestionRepository extends JpaRepository<Suggestion, Long> {}
 
     private final SuggestionRepository repository;
     
@@ -59,7 +23,7 @@ public class SuggestionBoxApplication {
         SpringApplication.run(SuggestionBoxApplication.class, args);
     }
 
-    // 3. 메인 건의 작성 화면
+    // 메인 건의 작성 화면
     @GetMapping(value = "/", produces = "text/html;charset=UTF-8")
     public String home() {
         return "<html>" +
@@ -86,7 +50,7 @@ public class SuggestionBoxApplication {
                 "</html>";
     }
 
-    // 4. 건의사항 제출 (DB 저장)
+    // 건의사항 제출 (DB 저장)
     @PostMapping(value = "/suggest", produces = "text/html;charset=UTF-8")
     public String addSuggestion(@RequestParam("studentInfo") String studentInfo, @RequestParam("content") String content) {
         if (content != null && !content.trim().isEmpty()) {
@@ -98,7 +62,7 @@ public class SuggestionBoxApplication {
                 "</body></html>";
     }
 
-    // 5. 건의사항 목록 조회 (DB에서 조회)
+    // 건의사항 목록 조회 (DB에서 조회)
     @PostMapping(value = "/list", produces = "text/html;charset=UTF-8")
     public String listSuggestions(@RequestParam("password") String password) {
         if (!ADMIN_PASSWORD.equals(password)) {
