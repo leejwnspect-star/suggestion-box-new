@@ -1,37 +1,61 @@
 package com.example.suggestionbox;
 
+import jakarta.persistence.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootApplication
 @RestController
 public class SuggestionBoxApplication {
 
-    // 건의사항 데이터 저장 클래스
-    static class Suggestion {
-        String studentInfo;
-        String content;
+    // 1. Database Entity (DB 테이블 구조)
+    @Entity
+    @Table(name = "suggestions")
+    public static class Suggestion {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
-        Suggestion(String studentInfo, String content) {
+        private String studentInfo;
+
+        @Column(columnDefinition = "TEXT")
+        private String content;
+
+        public Suggestion() {}
+
+        public Suggestion(String studentInfo, String content) {
             this.studentInfo = studentInfo;
             this.content = content;
         }
+
+        public Long getId() { return id; }
+        public String getStudentInfo() { return studentInfo; }
+        public String getContent() { return content; }
     }
 
-    private final List<Suggestion> suggestions = new ArrayList<>();
+    // 2. JPA Repository Interface
+    @Repository
+    public interface SuggestionRepository extends JpaRepository<Suggestion, Long> {}
+
+    private final SuggestionRepository repository;
     
-    // 🔒 관리자 비밀번호 설정 (원하는 비밀번호로 자유롭게 변경 가능!)
-private final String ADMIN_PASSWORD = "inputyourpassword";
+    // 🔒 관리자 비밀번호
+    private final String ADMIN_PASSWORD = "1234";
+
+    public SuggestionBoxApplication(SuggestionRepository repository) {
+        this.repository = repository;
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(SuggestionBoxApplication.class, args);
     }
 
-    // 1. 메인 건의 작성 화면
+    // 3. 메인 건의 작성 화면
     @GetMapping(value = "/", produces = "text/html;charset=UTF-8")
     public String home() {
         return "<html>" +
@@ -58,19 +82,19 @@ private final String ADMIN_PASSWORD = "inputyourpassword";
                 "</html>";
     }
 
-    // 2. 건의사항 제출 처리
+    // 4. 건의사항 제출 (DB 저장)
     @PostMapping(value = "/suggest", produces = "text/html;charset=UTF-8")
     public String addSuggestion(@RequestParam("studentInfo") String studentInfo, @RequestParam("content") String content) {
         if (content != null && !content.trim().isEmpty()) {
-            suggestions.add(new Suggestion(studentInfo, content));
+            repository.save(new Suggestion(studentInfo, content));
         }
         return "<html><body style='font-family: Arial; margin: 40px;'>" +
-                "<h3>✅ 건의사항이 성공적으로 제출되었습니다!</h3>" +
+                "<h3>✅ 건의사항이 DB에 안전하게 저장되었습니다!</h3>" +
                 "<br><a href='/'>홈으로 돌아가기</a>" +
                 "</body></html>";
     }
 
-    // 3. 건의사항 목록 조회 (표 형식 적용)
+    // 5. 건의사항 목록 조회 (DB에서 조회)
     @PostMapping(value = "/list", produces = "text/html;charset=UTF-8")
     public String listSuggestions(@RequestParam("password") String password) {
         if (!ADMIN_PASSWORD.equals(password)) {
@@ -80,6 +104,8 @@ private final String ADMIN_PASSWORD = "inputyourpassword";
                     "</body></html>";
         }
 
+        List<Suggestion> suggestions = repository.findAll();
+
         StringBuilder html = new StringBuilder();
         html.append("<html><head><title>4반 건의 목록</title></head>");
         html.append("<body style='font-family: Arial, sans-serif; margin: 40px; max-width: 800px;'>");
@@ -88,7 +114,6 @@ private final String ADMIN_PASSWORD = "inputyourpassword";
         if (suggestions.isEmpty()) {
             html.append("<p>아직 등록된 건의사항이 없습니다.</p>");
         } else {
-            // 📊 표(Table) 시작
             html.append("<table style='width: 100%; border-collapse: collapse; margin-top: 20px; text-align: left;'>");
             html.append("  <thead>");
             html.append("    <tr style='background-color: #007BFF; color: white;'>");
@@ -101,12 +126,12 @@ private final String ADMIN_PASSWORD = "inputyourpassword";
 
             for (int i = 0; i < suggestions.size(); i++) {
                 Suggestion s = suggestions.get(i);
-                String bgColor = (i % 2 == 0) ? "#ffffff" : "#f9f9f9"; // 행마다 배경색 번갈아가며 적용
+                String bgColor = (i % 2 == 0) ? "#ffffff" : "#f9f9f9";
                 
                 html.append("    <tr style='background-color: ").append(bgColor).append(";'>");
                 html.append("      <td style='padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;'>").append(i + 1).append("</td>");
-                html.append("      <td style='padding: 10px; border: 1px solid #ddd; font-weight: bold;'>").append(s.studentInfo).append("</td>");
-                html.append("      <td style='padding: 10px; border: 1px solid #ddd; white-space: pre-wrap;'>").append(s.content).append("</td>");
+                html.append("      <td style='padding: 10px; border: 1px solid #ddd; font-weight: bold;'>").append(s.getStudentInfo()).append("</td>");
+                html.append("      <td style='padding: 10px; border: 1px solid #ddd; white-space: pre-wrap;'>").append(s.getContent()).append("</td>");
                 html.append("    </tr>");
             }
 
